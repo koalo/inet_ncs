@@ -30,3 +30,7 @@ out/
 *.exe
 *.out
 *.app
+simulations/results/
+simulations/.cmdenv-log
+simulations/.tkenvlog
+simulations/.tkenvrc
