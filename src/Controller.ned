@@ -45,6 +45,12 @@ simple Controller extends IPBaseApp
 		double proportionalGain = default(1.0); // Network Control System Proportional Gain
 		double integralGain 	= default(0.0); // Network Control System Integral Gain
 		double derivativeGain 	= default(0.0); // Network Control System Derivative Gain
+		
+		// Signal Generator
+        string signalType = default("sine");
+        double signalMax;
+        double signalFrequency @unit("Hz") = default(0.01 Hz);
+		
         
         @signal[referenceChange];//(type=double);
         @signal[continuousControllerOutput];//(type=double);

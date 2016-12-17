@@ -24,12 +24,39 @@ SignalGenerator::SignalGenerator() {}
 SignalGenerator::~SignalGenerator() {
 }
 
-void SignalGenerator::initialize(int stage) {
+void SignalGenerator::initialize(int stage, cModule* module) {
     if (stage == INITSTAGE_LOCAL) {
+        std::string type = module->par("signalType").str();
+        if(type == "\"sine\"") {
+            signalType = SINE;
+        }
+        else if(type == "\"step\"") {
+            signalType = STEP;
+        }
+        else {
+            ASSERT(false);
+        }
 
+        startTime = module->par("startTime");
+        signalMax = module->par("signalMax");
+        signalFrequency = module->par("signalFrequency");
     }
 }
 
 double SignalGenerator::getCurrentValue() {
-    return -cos(simTime().dbl()/15)*20+20;
+    auto time = simTime();
+    if(time < startTime) {
+        return 0;
+    }
+    else {
+        double x = (time-startTime).dbl();
+        switch(signalType) {
+        case SINE:
+            return (-cos(x*signalFrequency*2*M_PI)+1)*signalMax/2;
+        case STEP:
+            return signalMax;
+        default:
+            return 0;
+        }
+    }
 }

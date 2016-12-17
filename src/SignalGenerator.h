@@ -18,13 +18,25 @@
 #ifndef SIGNAL_GENERATOR_H_
 #define SIGNAL_GENERATOR_H_
 
+#include "IPBaseApp.h"
+
 class SignalGenerator {
 public:
     SignalGenerator();
     virtual ~SignalGenerator();
-    void initialize(int stage);
+    void initialize(int stage, cModule* module);
 
     double getCurrentValue();
+
+private:
+    double startTime;
+    double signalMax;
+    double signalFrequency;
+
+    enum {
+        SINE = 0,
+        STEP = 1
+    } signalType;
 };
 
 #endif /* SIGNAL_GENERATOR_H_ */

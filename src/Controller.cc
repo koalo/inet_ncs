@@ -57,7 +57,7 @@ void Controller::initialize(int stage)
 {
     IPBaseApp::initialize(stage); // start stop timer and parameters
 
-    signalGenerator.initialize(stage);
+    signalGenerator.initialize(stage,this);
 
     if (stage == INITSTAGE_LOCAL) {
 
@@ -138,8 +138,6 @@ void Controller::handleMessageWhenUp(cMessage *msg)
 
 void Controller::processStart()
 {
-    // Handle start timer event
-    changeReferenceValue(par("referenceValue").doubleValue());
 }
 
 
