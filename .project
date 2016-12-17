@@ -3,7 +3,7 @@
 	<name>inet_ncs</name>
 	<comment></comment>
 	<projects>
-		<project>inet</project>
+		<project>inet-jonas</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
