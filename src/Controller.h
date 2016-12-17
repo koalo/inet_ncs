@@ -39,6 +39,7 @@ public:
     static simsignal_t mappedControllerOutputSignal;
     static simsignal_t numProbablyActuatedSignal;
 
+    static simsignal_t controllerErrorSignal;
     static simsignal_t continuousControllerPSignal;
     static simsignal_t continuousControllerISignal;
     static simsignal_t continuousControllerDSignal;

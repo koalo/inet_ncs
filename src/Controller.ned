@@ -55,6 +55,7 @@ simple Controller extends IPBaseApp
         
         @signal[referenceChange];//(type=double);
         @signal[continuousControllerOutput];//(type=double);
+        @signal[controllerError];//(type=double);
         @signal[continuousControllerP];//(type=double);
         @signal[continuousControllerI];//(type=double);
         @signal[continuousControllerD];//(type=double);
@@ -63,6 +64,7 @@ simple Controller extends IPBaseApp
         
         @statistic[referenceChangeStat](title="reference value"; source=referenceChange; record=count,vector; interpolationmode=sample-hold);
         @statistic[continuousControllerOutputStat](title="continuous controller output"; source=continuousControllerOutput; record=count,vector; interpolationmode=sample-hold);
+        @statistic[controllerErrorStat](title="controller error"; source=controllerError; record=count,vector; interpolationmode=sample-hold);
         @statistic[continuousControllerPStat](title="continuous controller proportional output"; source=continuousControllerP; record=count,vector; interpolationmode=sample-hold);
         @statistic[continuousControllerIStat](title="continuous controller integral output"; source=continuousControllerI; record=count,vector; interpolationmode=sample-hold);
         @statistic[continuousControllerDStat](title="continuous controller derivative output"; source=continuousControllerD; record=count,vector; interpolationmode=sample-hold);

@@ -38,6 +38,7 @@ simsignal_t Controller::mappedControllerOutputSignal = registerSignal("mappedCon
 simsignal_t Controller::numProbablyActuatedSignal = registerSignal("numProbablyActuated");
 
 // PID
+simsignal_t Controller::controllerErrorSignal = registerSignal("controllerError");
 simsignal_t Controller::continuousControllerPSignal = registerSignal("continuousControllerP");
 simsignal_t Controller::continuousControllerISignal = registerSignal("continuousControllerI");
 simsignal_t Controller::continuousControllerDSignal = registerSignal("continuousControllerD");
@@ -204,6 +205,8 @@ void Controller::processSample(double sample)
 
         // Control Action
         double curDelta = referenceValue - currentFlux;
+
+        emit(controllerErrorSignal, curDelta);
 
         // Anti-Windup
         if (integrator + curDelta > integrator_mag_max) {
