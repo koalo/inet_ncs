@@ -40,13 +40,14 @@ simple Controller extends IPBaseApp
         int actuatorControlProtocol; // Protocol number used for commands to the actuators // OUTGOING
         int actuatorStatusProtocol;  // IN/OUT
 
-		// PID-Controller parameters
-		double referenceValue 	= default(20.0); // Network Control System Reference Value
-		double proportionalGain = default(1.0); // Network Control System Proportional Gain
-		double integralGain 	= default(0.0); // Network Control System Integral Gain
-		double derivativeGain 	= default(0.0); // Network Control System Derivative Gain
+        // PID-Controller parameters
+        string controllerType   = default("PID");
+        double referenceValue 	= default(20.0); // Network Control System Reference Value
+        double proportionalGain = default(1.0); // Network Control System Proportional Gain
+        double integralGain 	= default(0.0); // Network Control System Integral Gain
+        double derivativeGain 	= default(0.0); // Network Control System Derivative Gain
 		
-		// Signal Generator
+        // Signal Generator
         string signalType = default("sine");
         double signalMax;
         double signalFrequency @unit("Hz") = default(0.01 Hz);

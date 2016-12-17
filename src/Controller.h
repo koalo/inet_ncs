@@ -72,6 +72,11 @@ protected:
     double Ki;
     double Kd;
 
+    enum {
+        PID = 0,
+        OPEN_LOOP = 1
+    } controllerType;
+
     std::vector<inet::L3Address> vSensorAddresses;
 
     SignalGenerator signalGenerator;

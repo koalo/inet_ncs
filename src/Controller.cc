@@ -70,6 +70,17 @@ void Controller::initialize(int stage)
         actuatorControlProtocol = par("actuatorControlProtocol");
         actuatorStatusProtocol = par("actuatorStatusProtocol");
 
+        std::string type = par("controllerType").str();
+        if(type == "\"PID\"") {
+            controllerType = PID;
+        }
+        else if(type == "\"OPEN_LOOP\"") {
+            controllerType = OPEN_LOOP;
+        }
+        else {
+            ASSERT(false);
+        }
+
         Kp = par("proportionalGain");
         Ki = par("integralGain");
         Kd = par("derivativeGain");
@@ -184,32 +195,42 @@ void Controller::processPacket(cPacket *pkt)
 */
 void Controller::processSample(double sample)
 {
-    static double integrator = 0;
-    const double integrator_mag_max = 10;
-    currentFlux = sample;
+    double u;
 
-    // Control Action
-    double curDelta = referenceValue - currentFlux;
+    if(controllerType == PID) {
+        static double integrator = 0;
+        const double integrator_mag_max = 10;
+        currentFlux = sample;
 
-    // Anti-Windup
-    if (integrator + curDelta > integrator_mag_max) {
-        integrator = integrator_mag_max;
-    } else if (integrator + curDelta < -integrator_mag_max) {
-        integrator = -integrator_mag_max;
-    } else {
-        integrator += curDelta;
+        // Control Action
+        double curDelta = referenceValue - currentFlux;
+
+        // Anti-Windup
+        if (integrator + curDelta > integrator_mag_max) {
+            integrator = integrator_mag_max;
+        } else if (integrator + curDelta < -integrator_mag_max) {
+            integrator = -integrator_mag_max;
+        } else {
+            integrator += curDelta;
+        }
+
+        // PID-Controller
+        double p = Kp * curDelta;
+        double i = Ki * integrator;
+        double d = Kd * (curDelta - lastFluxDelta);
+        u = p + i + d;
+        emit(continuousControllerPSignal, p);
+        emit(continuousControllerISignal, i);
+        emit(continuousControllerDSignal, d);
+        emit(continuousControllerOutputSignal, u);
+
+        // Derivative
+        lastFluxDelta = curDelta;
+        lastFlux = currentFlux;
     }
-
-    // PID-Controller
-    double p = Kp * curDelta;
-    double i = Ki * integrator;
-    double d = Kd * (curDelta - lastFluxDelta);
-    double u = p + i + d;
-    emit(continuousControllerPSignal, p);
-    emit(continuousControllerISignal, i);
-    emit(continuousControllerDSignal, d);
-    emit(continuousControllerOutputSignal, u);
-
+    else if(controllerType == OPEN_LOOP) {
+        u = referenceValue;
+    }
 
     // Map controller output to actuator on/off number
 
@@ -223,10 +244,6 @@ void Controller::processSample(double sample)
     emit(mappedControllerOutputSignal, mapped);
 
     changeState(mapped);
-
-    // Derivative
-    lastFluxDelta = curDelta;
-    lastFlux = currentFlux;
 }
 
 /**
