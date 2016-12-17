@@ -92,7 +92,7 @@ protected:
 
 
     void processSample(double sample);
-    void changeState(int changeNum);
+    void changeState(int targetValue);
 
     void changeReferenceValue(double reference);
     virtual void finish() override;

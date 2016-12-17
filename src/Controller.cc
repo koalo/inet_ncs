@@ -285,8 +285,18 @@ void Controller::print_states(std::vector<PrimitiveLRUActuatorState *> destState
 /**
  * Unicast to a certain number of actuators.
  */
-void Controller::changeState(int changeNum)
+void Controller::changeState(int targetValue)
 {
+    // TODO Cache this value instead of iterating over the vector
+    int numActive = 0;
+    for(auto& state : actuatorStates) {
+        if(state.getLastActuationCommand() == ActuationCommand::ON) {
+            numActive++;
+        }
+    }
+
+    int changeNum = targetValue-numActive;
+
     unsigned int num = std::abs(changeNum);
 
     std::vector<PrimitiveLRUActuatorState *> destStates;
