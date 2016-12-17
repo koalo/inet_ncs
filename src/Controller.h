@@ -26,6 +26,7 @@
 #include "inet/common/INETDefs.h"
 #include "inet/common/lifecycle/ILifecycle.h"
 #include "IPBaseApp.h"
+#include "SignalGenerator.h"
 
 
 class Controller : public IPBaseApp {
@@ -72,6 +73,8 @@ protected:
     double Kd;
 
     std::vector<inet::L3Address> vSensorAddresses;
+
+    SignalGenerator signalGenerator;
 
 protected:
 

@@ -57,6 +57,8 @@ void Controller::initialize(int stage)
 {
     IPBaseApp::initialize(stage); // start stop timer and parameters
 
+    signalGenerator.initialize(stage);
+
     if (stage == INITSTAGE_LOCAL) {
 
         sensorControlLength = par("sensorControlLength").longValue();
@@ -161,6 +163,9 @@ void Controller::processPacket(cPacket *pkt)
 
         switch(stype) {
         case sensorMessageType::NEW_SAMPLE:
+
+            // Set new reference value
+            changeReferenceValue(signalGenerator.getCurrentValue());
 
             double newFlux = pkt->par("sampleValue").doubleValue();
             processSample(newFlux);
