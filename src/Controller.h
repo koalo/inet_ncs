@@ -71,6 +71,7 @@ protected:
     double Kp;
     double Ki;
     double Kd;
+    double integrator = 0;
 
     enum {
         PID = 0,

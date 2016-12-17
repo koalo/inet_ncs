@@ -198,7 +198,7 @@ void Controller::processSample(double sample)
     double u;
 
     if(controllerType == PID) {
-        static double integrator = 0;
+        integrator = 0;
         const double integrator_mag_max = 10;
         currentFlux = sample;
 
