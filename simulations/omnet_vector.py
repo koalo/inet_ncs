@@ -44,7 +44,7 @@ class OmnetVector:
         self.dataValues = {}
 
         for line in file_input:
-            m = re.search("([0-9]+)\t([0-9]+)\t([0-9.]+)\t([0-9.]+)",line)
+            m = re.search("([0-9]+)\t([0-9]+)\t([0-9.e\-+]+)\t([0-9.e\-+]+)",line)
             #m = re.search("([0-9]+)",line)
             if m:
                 vector = int(m.group(1))
