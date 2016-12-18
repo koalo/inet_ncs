@@ -74,6 +74,7 @@ void Controller::initialize(int stage)
         std::string type = par("controllerType").str();
         if(type == "\"PID\"") {
             controllerType = PID;
+            integrator = 0;
         }
         else if(type == "\"OPEN_LOOP\"") {
             controllerType = OPEN_LOOP;
@@ -199,7 +200,6 @@ void Controller::processSample(double sample)
     double u;
 
     if(controllerType == PID) {
-        integrator = 0;
         const double integrator_mag_max = 10;
         currentFlux = sample;
 
