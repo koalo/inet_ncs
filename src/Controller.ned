@@ -40,14 +40,22 @@ simple Controller extends IPBaseApp
         int actuatorControlProtocol; // Protocol number used for commands to the actuators // OUTGOING
         int actuatorStatusProtocol;  // IN/OUT
 
-		// PID-Controller parameters
-		double referenceValue 	= default(20.0); // Network Control System Reference Value
-		double proportionalGain = default(1.0); // Network Control System Proportional Gain
-		double integralGain 	= default(0.0); // Network Control System Integral Gain
-		double derivativeGain 	= default(0.0); // Network Control System Derivative Gain
+        // PID-Controller parameters
+        string controllerType   = default("PID");
+        double referenceValue 	= default(20.0); // Network Control System Reference Value
+        double proportionalGain = default(1.0); // Network Control System Proportional Gain
+        double integralGain 	= default(0.0); // Network Control System Integral Gain
+        double derivativeGain 	= default(0.0); // Network Control System Derivative Gain
+		
+        // Signal Generator
+        string signalType = default("sine");
+        double signalMax;
+        double signalFrequency @unit("Hz") = default(0.01 Hz);
+		
         
         @signal[referenceChange];//(type=double);
         @signal[continuousControllerOutput];//(type=double);
+        @signal[controllerError];//(type=double);
         @signal[continuousControllerP];//(type=double);
         @signal[continuousControllerI];//(type=double);
         @signal[continuousControllerD];//(type=double);
@@ -56,6 +64,7 @@ simple Controller extends IPBaseApp
         
         @statistic[referenceChangeStat](title="reference value"; source=referenceChange; record=count,vector; interpolationmode=sample-hold);
         @statistic[continuousControllerOutputStat](title="continuous controller output"; source=continuousControllerOutput; record=count,vector; interpolationmode=sample-hold);
+        @statistic[controllerErrorStat](title="controller error"; source=controllerError; record=count,vector; interpolationmode=sample-hold);
         @statistic[continuousControllerPStat](title="continuous controller proportional output"; source=continuousControllerP; record=count,vector; interpolationmode=sample-hold);
         @statistic[continuousControllerIStat](title="continuous controller integral output"; source=continuousControllerI; record=count,vector; interpolationmode=sample-hold);
         @statistic[continuousControllerDStat](title="continuous controller derivative output"; source=continuousControllerD; record=count,vector; interpolationmode=sample-hold);

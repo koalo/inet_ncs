@@ -38,6 +38,7 @@ simsignal_t Controller::mappedControllerOutputSignal = registerSignal("mappedCon
 simsignal_t Controller::numProbablyActuatedSignal = registerSignal("numProbablyActuated");
 
 // PID
+simsignal_t Controller::controllerErrorSignal = registerSignal("controllerError");
 simsignal_t Controller::continuousControllerPSignal = registerSignal("continuousControllerP");
 simsignal_t Controller::continuousControllerISignal = registerSignal("continuousControllerI");
 simsignal_t Controller::continuousControllerDSignal = registerSignal("continuousControllerD");
@@ -57,6 +58,8 @@ void Controller::initialize(int stage)
 {
     IPBaseApp::initialize(stage); // start stop timer and parameters
 
+    signalGenerator.initialize(stage,this);
+
     if (stage == INITSTAGE_LOCAL) {
 
         sensorControlLength = par("sensorControlLength").longValue();
@@ -67,6 +70,17 @@ void Controller::initialize(int stage)
         sensorControlProtocol = par("sensorControlProtocol");
         actuatorControlProtocol = par("actuatorControlProtocol");
         actuatorStatusProtocol = par("actuatorStatusProtocol");
+
+        std::string type = par("controllerType").str();
+        if(type == "\"PID\"") {
+            controllerType = PID;
+        }
+        else if(type == "\"OPEN_LOOP\"") {
+            controllerType = OPEN_LOOP;
+        }
+        else {
+            ASSERT(false);
+        }
 
         Kp = par("proportionalGain");
         Ki = par("integralGain");
@@ -136,8 +150,6 @@ void Controller::handleMessageWhenUp(cMessage *msg)
 
 void Controller::processStart()
 {
-    // Handle start timer event
-    changeReferenceValue(par("referenceValue").doubleValue());
 }
 
 
@@ -162,6 +174,9 @@ void Controller::processPacket(cPacket *pkt)
         switch(stype) {
         case sensorMessageType::NEW_SAMPLE:
 
+            // Set new reference value
+            changeReferenceValue(signalGenerator.getCurrentValue());
+
             double newFlux = pkt->par("sampleValue").doubleValue();
             processSample(newFlux);
             break;
@@ -181,32 +196,44 @@ void Controller::processPacket(cPacket *pkt)
 */
 void Controller::processSample(double sample)
 {
-    static double integrator = 0;
-    const double integrator_mag_max = 10;
-    currentFlux = sample;
+    double u;
 
-    // Control Action
-    double curDelta = referenceValue - currentFlux;
+    if(controllerType == PID) {
+        integrator = 0;
+        const double integrator_mag_max = 10;
+        currentFlux = sample;
 
-    // Anti-Windup
-    if (integrator + curDelta > integrator_mag_max) {
-        integrator = integrator_mag_max;
-    } else if (integrator + curDelta < -integrator_mag_max) {
-        integrator = -integrator_mag_max;
-    } else {
-        integrator += curDelta;
+        // Control Action
+        double curDelta = referenceValue - currentFlux;
+
+        emit(controllerErrorSignal, curDelta);
+
+        // Anti-Windup
+        if (integrator + curDelta > integrator_mag_max) {
+            integrator = integrator_mag_max;
+        } else if (integrator + curDelta < -integrator_mag_max) {
+            integrator = -integrator_mag_max;
+        } else {
+            integrator += curDelta;
+        }
+
+        // PID-Controller
+        double p = Kp * curDelta;
+        double i = Ki * integrator;
+        double d = Kd * (curDelta - lastFluxDelta);
+        u = p + i + d;
+        emit(continuousControllerPSignal, p);
+        emit(continuousControllerISignal, i);
+        emit(continuousControllerDSignal, d);
+        emit(continuousControllerOutputSignal, u);
+
+        // Derivative
+        lastFluxDelta = curDelta;
+        lastFlux = currentFlux;
     }
-
-    // PID-Controller
-    double p = Kp * curDelta;
-    double i = Ki * integrator;
-    double d = Kd * (curDelta - lastFluxDelta);
-    double u = p + i + d;
-    emit(continuousControllerPSignal, p);
-    emit(continuousControllerISignal, i);
-    emit(continuousControllerDSignal, d);
-    emit(continuousControllerOutputSignal, u);
-
+    else if(controllerType == OPEN_LOOP) {
+        u = referenceValue;
+    }
 
     // Map controller output to actuator on/off number
 
@@ -220,10 +247,6 @@ void Controller::processSample(double sample)
     emit(mappedControllerOutputSignal, mapped);
 
     changeState(mapped);
-
-    // Derivative
-    lastFluxDelta = curDelta;
-    lastFlux = currentFlux;
 }
 
 /**
@@ -265,8 +288,18 @@ void Controller::print_states(std::vector<PrimitiveLRUActuatorState *> destState
 /**
  * Unicast to a certain number of actuators.
  */
-void Controller::changeState(int changeNum)
+void Controller::changeState(int targetValue)
 {
+    // TODO Cache this value instead of iterating over the vector
+    int numActive = 0;
+    for(auto& state : actuatorStates) {
+        if(state.getLastActuationCommand() == ActuationCommand::ON) {
+            numActive++;
+        }
+    }
+
+    int changeNum = targetValue-numActive;
+
     unsigned int num = std::abs(changeNum);
 
     std::vector<PrimitiveLRUActuatorState *> destStates;

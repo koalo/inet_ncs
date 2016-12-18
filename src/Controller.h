@@ -26,6 +26,7 @@
 #include "inet/common/INETDefs.h"
 #include "inet/common/lifecycle/ILifecycle.h"
 #include "IPBaseApp.h"
+#include "SignalGenerator.h"
 
 
 class Controller : public IPBaseApp {
@@ -38,6 +39,7 @@ public:
     static simsignal_t mappedControllerOutputSignal;
     static simsignal_t numProbablyActuatedSignal;
 
+    static simsignal_t controllerErrorSignal;
     static simsignal_t continuousControllerPSignal;
     static simsignal_t continuousControllerISignal;
     static simsignal_t continuousControllerDSignal;
@@ -70,8 +72,16 @@ protected:
     double Kp;
     double Ki;
     double Kd;
+    double integrator = 0;
+
+    enum {
+        PID = 0,
+        OPEN_LOOP = 1
+    } controllerType;
 
     std::vector<inet::L3Address> vSensorAddresses;
+
+    SignalGenerator signalGenerator;
 
 protected:
 
@@ -84,7 +94,7 @@ protected:
 
 
     void processSample(double sample);
-    void changeState(int changeNum);
+    void changeState(int targetValue);
 
     void changeReferenceValue(double reference);
     virtual void finish() override;
