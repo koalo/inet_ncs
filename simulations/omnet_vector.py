@@ -34,6 +34,8 @@
 # SUCH DAMAGE.
 
 import re
+import scipy.interpolate
+import numpy as np
 
 vectors = []
 
@@ -42,16 +44,20 @@ class OmnetVector:
         self.vectors = {}
         self.dataTime = {}
         self.dataValues = {}
+        self.maxtime = 0
+        self.attrs = {}
 
         for line in file_input:
-            m = re.search("([0-9]+)\t([0-9]+)\t([0-9.e\-+]+)\t([0-9.e\-+]+)",line)
+            m = re.search("([0-9]+)\t([0-9]+)\t([0-9.e\-+]+)\t([0-9.e\-+na]+)",line)
             #m = re.search("([0-9]+)",line)
             if m:
                 vector = int(m.group(1))
                 if not vector in self.dataTime:
                     self.dataTime[vector] = []
                     self.dataValues[vector] = []
-                self.dataTime[vector].append(float(m.group(3)))
+                time = float(m.group(3))
+                self.dataTime[vector].append(time)
+                self.maxtime = max(self.maxtime,time)
                 self.dataValues[vector].append(float(m.group(4)))
             else:
                 # vector 7  Net802154.host[0].ipApp[0]  referenceChangeStat:vector  ETV
@@ -63,8 +69,23 @@ class OmnetVector:
                     if not name in self.vectors:
                         self.vectors[name] = {}
                     self.vectors[name][module] = number
+                else:
+                    m = re.search("attr ([^ ]*) ([^ ]*)\n",line)
+                    if m:
+                        self.attrs[m.group(1)] = m.group(2)
+                        
 
-    def get_vector(self,name,module):
+    def get_vector(self,name,module,resample=None):
         num = self.vectors[name][module]
-        return (self.dataTime[num],self.dataValues[num])
+        (time,values) = (self.dataTime[num],self.dataValues[num])
+        if resample != None:
+            newpoints = np.arange(0,self.maxtime,resample)
+            lastvalue = values[-1]
+            return (newpoints, scipy.interpolate.interp1d(time,values,'zero',assume_sorted=True,
+                                                          bounds_error=False,fill_value=(0,lastvalue)).__call__(newpoints))
+        else:
+            return (time,values)
+
+    def get_attr(self,name):
+        return self.attrs[name]
 
