@@ -115,7 +115,8 @@ bool Actuator::handleNodeStart(IDoneCallback *doneCallback)
 
     auto it = components.begin();
     while(it != components.end()) {
-        EV_INFO << (*it++)->getFullPath() << std::endl;
+        EV_INFO << (*it)->getFullPath() << std::endl;
+        ++it;
     }
 
     return true;
