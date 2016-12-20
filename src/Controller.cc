@@ -205,7 +205,6 @@ void Controller::processSample(double sample)
 
         // Control Action
         double curDelta = referenceValue - currentFlux;
-
         emit(controllerErrorSignal, curDelta);
 
         // Anti-Windup
@@ -324,12 +323,12 @@ void Controller::changeState(int targetValue)
     if (changeNum > 0) {
         // Horrible replacement but stable, other is WIP
         std::stable_sort(destStates.begin(), destStates.end(), PrimitiveLRUActuatorStateInactivePtrComparator());
-        std::cout << std::endl << "Turn on some of these:" << std::endl;
+        //DEBUG: std::cout << std::endl << "Turn on some of these:" << std::endl;
         cmd = ActuationCommand::ON;
     } else if (changeNum < 0) {
         // Horrible replacement but stable, other is WIP
         std::stable_sort(destStates.begin(), destStates.end(), PrimitiveLRUActuatorStateActivePtrComparator());
-        std::cout << std::endl << "Turn off some of these:" << std::endl;
+        //DEBUG: std::cout << std::endl << "Turn off some of these:" << std::endl;
         cmd = ActuationCommand::OFF;
     } else {
         return;

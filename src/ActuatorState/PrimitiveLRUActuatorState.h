@@ -61,7 +61,7 @@ struct PrimitiveLRUActuatorStateActivePtrComparator {
     }
 };
 
-struct PrimitiveActuatorStateActiveRefComparator {
+struct PrimitiveLRUActuatorStateActiveRefComparator {
     bool operator()(PrimitiveLRUActuatorState& a, PrimitiveLRUActuatorState& b)
     {
         return PrimitiveLRUActuatorState::compareStateForActive(a, b);
