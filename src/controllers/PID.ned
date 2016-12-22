@@ -33,11 +33,11 @@ simple PID like IController
         @signal[controllerI];//(type=double);
         @signal[controllerD];//(type=double);
         
-        @statistic[controllerOutput](title="controller output"; source=controllerOutput; record=count,vector; interpolationmode=sample-hold);
-        @statistic[controllerError](title="controller error"; source=controllerError; record=count,vector; interpolationmode=sample-hold);
-        @statistic[controllerP](title="proportional output"; source=controllerP; record=count,vector; interpolationmode=sample-hold);
-        @statistic[controllerI](title="integral output"; source=controllerI; record=count,vector; interpolationmode=sample-hold);
-        @statistic[controllerD](title="derivative output"; source=controllerD; record=count,vector; interpolationmode=sample-hold);
+        @statistic[controllerOutput](title="controller output"; source=controllerOutput; record=count,vector,stats; interpolationmode=sample-hold);
+        @statistic[controllerError](title="controller error"; source=controllerError; record=count,vector,stats; interpolationmode=sample-hold);
+        @statistic[controllerP](title="proportional output"; source=controllerP; record=count,vector,stats; interpolationmode=sample-hold);
+        @statistic[controllerI](title="integral output"; source=controllerI; record=count,vector,stats; interpolationmode=sample-hold);
+        @statistic[controllerD](title="derivative output"; source=controllerD; record=count,vector,stats; interpolationmode=sample-hold);
         
         @display("i=block/app");
         @class(PID);

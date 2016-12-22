@@ -25,8 +25,8 @@ moduleinterface IController
         @signal[controllerOutput];//(type=double);
         @signal[controllerError];//(type=double);
         
-        @statistic[controllerOutput](title="controller output"; source=controllerOutput; record=count,vector; interpolationmode=sample-hold);
-        @statistic[controllerError](title="controller error"; source=controllerError; record=count,vector; interpolationmode=sample-hold);
+        @statistic[controllerOutput](title="controller output"; source=controllerOutput; record=count,vector,stats; interpolationmode=sample-hold);
+        @statistic[controllerError](title="controller error"; source=controllerError; record=count,vector,stats; interpolationmode=sample-hold);
 		
         @class(IController);
 }

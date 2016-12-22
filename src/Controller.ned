@@ -50,10 +50,10 @@ module Controller extends IPBaseApp
         @signal[mappedControllerOutput];//(type=int);
         @signal[numProbablyActuated];//(type=int);
         
-        @statistic[referenceChangeStat](title="reference value"; source=referenceChange; record=count,vector; interpolationmode=sample-hold);
-        @statistic[continuousControllerOutputStat](title="continuous controller output"; source=continuousControllerOutput; record=count,vector; interpolationmode=sample-hold);
-        @statistic[mappedControllerOutputStat](title="mapped controller output"; source=mappedControllerOutput; record=count,vector; interpolationmode=sample-hold);
-        @statistic[numProbablyActuatedStat](title="actually controlled actuators"; source=numProbablyActuated; record=count,vector; interpolationmode=sample-hold);
+        @statistic[referenceChangeStat](title="reference value"; source=referenceChange; record=count,vector,stats; interpolationmode=sample-hold);
+        @statistic[continuousControllerOutputStat](title="continuous controller output"; source=continuousControllerOutput; record=count,vector,stats; interpolationmode=sample-hold);
+        @statistic[mappedControllerOutputStat](title="mapped controller output"; source=mappedControllerOutput; record=count,vector,stats; interpolationmode=sample-hold);
+        @statistic[numProbablyActuatedStat](title="actually controlled actuators"; source=numProbablyActuated; record=count,vector,stats; interpolationmode=sample-hold);
         
         @class(Controller); // results in crash
         

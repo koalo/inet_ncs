@@ -37,7 +37,7 @@ simple Sensor extends IPBaseApp
     	int sensorControlProtocol; // Protocol to receive control commands from a controller
         
         @signal[newSensorSample](type=double);
-        @statistic[sensorSample](title="sample value"; source=newSensorSample; record=count,vector; interpolationmode=sample-hold);
+        @statistic[sensorSample](title="sample value"; source=newSensorSample; record=count,vector,stats; interpolationmode=sample-hold);
         @class(Sensor);
     gates:
 }
