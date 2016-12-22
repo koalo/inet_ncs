@@ -54,7 +54,8 @@ void Actuator::initialize(int stage)
         selfMessageActuation = new cMessage("selfMessageActuation");
         selfMessageStatus = new cMessage("selfMessageStatus");
 
-        currentAct = ActuationCommand::NONE;
+        // TODO: Allow assignment of initial state and signal this state to the registered sensors
+        currentAct = ActuationCommand::OFF;
         nextAct = ActuationCommand::NONE;
 
     } else if (stage == INITSTAGE_TRANSPORT_LAYER) {
@@ -75,8 +76,7 @@ void Actuator::finish()
 void Actuator::handleMessageWhenUp(cMessage *msg)
 {
     if(msg == selfMessageActuation) {
-
-        // TODO: save actuation command in kind instead of extra variable
+        // TODO: save actuation command in kind instead of extra variable (?)
         switch(msg->getKind()) {
 
         case selfMessageKinds::CHANGE_ACTIVATION:
@@ -88,7 +88,6 @@ void Actuator::handleMessageWhenUp(cMessage *msg)
             } else {
                 EV_INFO << "Actuation state still is: " << ((nextAct == ActuationCommand::ON)? "ON" : "OFF") << std::endl;
             }
-
             break;
         }
 
@@ -200,14 +199,12 @@ void Actuator::handleChangeActivation(L3Address sender, ActuationCommand recvAct
     // If changing state at the moment.
     if (selfMessageActuation->isScheduled()) {
 
-        // If current actuation equals received
-        if (nextAct == recvAct) {
-            return;
-        }
+        // If current actuation equals received let it finish
+        if (nextAct == recvAct) return;
 
         if (currentAct == recvAct) {
             // FIXME: If undone, will a signal be emitted?
-            // Undo change till now (Only sensible for On/Off Acuators)
+            // Undo change till now (Only sensible for On/Off Actuators)
             // Go back to state before calculate actuation time reverse
 
             simtime_t nextActArrival = selfMessageActuation->getArrivalTime();
@@ -216,11 +213,8 @@ void Actuator::handleChangeActivation(L3Address sender, ActuationCommand recvAct
         }
 
     } else {
-        // If not scheduled but received state is equals current
-        if (currentAct == recvAct) {
-            // Do nothing
-            return;
-        }
+        // If not scheduled but received state equals current
+        if (currentAct == recvAct) return;
     }
 
 
