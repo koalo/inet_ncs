@@ -1,5 +1,5 @@
 //
-// Copyright (C) Jonas K., 2016 <i-tek@web.de>
+// Copyright (C) 2016 Jonas K. <i-tek@web.de>
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 #include <controldefs.h>
 #include <omnetpp.h>
 #include <PrimitiveLRUActuatorState.h>
+#include "IController.h"
 
 #include "inet/common/lifecycle/NodeOperations.h"
 #include "inet/common/ModuleAccess.h"
@@ -33,15 +34,9 @@ using namespace inet;
 Define_Module(Controller);
 
 simsignal_t Controller::referenceChangeSignal = registerSignal("referenceChange");
-simsignal_t Controller::continuousControllerOutputSignal = registerSignal("continuousControllerOutput");
 simsignal_t Controller::mappedControllerOutputSignal = registerSignal("mappedControllerOutput");
 simsignal_t Controller::numProbablyActuatedSignal = registerSignal("numProbablyActuated");
 
-// PID
-simsignal_t Controller::controllerErrorSignal = registerSignal("controllerError");
-simsignal_t Controller::continuousControllerPSignal = registerSignal("continuousControllerP");
-simsignal_t Controller::continuousControllerISignal = registerSignal("continuousControllerI");
-simsignal_t Controller::continuousControllerDSignal = registerSignal("continuousControllerD");
 
 
 Controller::Controller() {}
@@ -71,21 +66,11 @@ void Controller::initialize(int stage)
         actuatorControlProtocol = par("actuatorControlProtocol");
         actuatorStatusProtocol = par("actuatorStatusProtocol");
 
-        std::string type = par("controllerType").str();
-        if(type == "\"PID\"") {
-            controllerType = PID;
-            integrator = 0;
+        // Assign pointer to controller in order to call functions (of course proper socket usage would be nicer but an overhead)
+        controller = check_and_cast<IController *>(this->getSubmodule("controller"));
+        if (controller == nullptr) {
+            throw cRuntimeError("ERROR: Cannot find the submodule 'controller'! Please specify it in omnet.ini");
         }
-        else if(type == "\"OPEN_LOOP\"") {
-            controllerType = OPEN_LOOP;
-        }
-        else {
-            ASSERT(false);
-        }
-
-        Kp = par("proportionalGain");
-        Ki = par("integralGain");
-        Kd = par("derivativeGain");
 
         selfMessage = new cMessage("selfMessage");
 
@@ -175,11 +160,14 @@ void Controller::processPacket(cPacket *pkt)
         switch(stype) {
         case sensorMessageType::NEW_SAMPLE:
 
+            double ref = signalGenerator.getCurrentValue();
             // Set new reference value
-            changeReferenceValue(signalGenerator.getCurrentValue());
+            changeReferenceValue(ref);
 
-            double newFlux = pkt->par("sampleValue").doubleValue();
-            processSample(newFlux);
+            double newSample = pkt->par("sampleValue").doubleValue();
+            double ctrlValue = controller->processSample(newSample,ref);
+
+            changeState(mapControlValue(ctrlValue));
             break;
         }
 
@@ -193,50 +181,14 @@ void Controller::processPacket(cPacket *pkt)
 
 
 /**
- * This is just a quick and dirty controller with horrible characteristics.
+ * Maps the controller output to real Actuators.
+ * TODO: This might be moved to the controller modules as well.
+ *       (Which then have to decide on their own how to map)
 */
-void Controller::processSample(double sample)
+int Controller::mapControlValue(double ctrlOut)
 {
-    double u;
-
-    if(controllerType == PID) {
-        const double integrator_mag_max = 10;
-        currentFlux = sample;
-
-        // Control Action
-        double curDelta = referenceValue - currentFlux;
-        emit(controllerErrorSignal, curDelta);
-
-        // Anti-Windup
-        if (integrator + curDelta > integrator_mag_max) {
-            integrator = integrator_mag_max;
-        } else if (integrator + curDelta < -integrator_mag_max) {
-            integrator = -integrator_mag_max;
-        } else {
-            integrator += curDelta;
-        }
-
-        // PID-Controller
-        double p = Kp * curDelta;
-        double i = Ki * integrator;
-        double d = Kd * (curDelta - lastFluxDelta);
-        u = p + i + d;
-        emit(continuousControllerPSignal, p);
-        emit(continuousControllerISignal, i);
-        emit(continuousControllerDSignal, d);
-        emit(continuousControllerOutputSignal, u);
-
-        // Derivative
-        lastFluxDelta = curDelta;
-        lastFlux = currentFlux;
-    }
-    else if(controllerType == OPEN_LOOP) {
-        u = referenceValue;
-    }
-
     // Map controller output to actuator on/off number
-
-    int mapped = static_cast<int>(u);
+    int mapped = static_cast<int>(ctrlOut);
     int total = actuatorStates.size();
 
     if (abs(mapped) > total) {
@@ -245,7 +197,7 @@ void Controller::processSample(double sample)
 
     emit(mappedControllerOutputSignal, mapped);
 
-    changeState(mapped);
+    return mapped;
 }
 
 /**
@@ -287,18 +239,8 @@ void Controller::print_states(std::vector<PrimitiveLRUActuatorState *> destState
 /**
  * Unicast to a certain number of actuators.
  */
-void Controller::changeState(int targetValue)
+void Controller::changeState(int changeNum)
 {
-    // TODO Cache this value instead of iterating over the vector
-    int numActive = 0;
-    for(auto& state : actuatorStates) {
-        if(state.getLastActuationCommand() == ActuationCommand::ON) {
-            numActive++;
-        }
-    }
-
-    int changeNum = targetValue-numActive;
-
     unsigned int num = std::abs(changeNum);
 
     std::vector<PrimitiveLRUActuatorState *> destStates;

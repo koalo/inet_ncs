@@ -1,5 +1,5 @@
 //
-// Copyright (C) Jonas K., 2016 <i-tek@web.de>
+// Copyright (C) 2016 Jonas K. <i-tek@web.de>
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@
 
 #include "inet/common/INETDefs.h"
 #include "inet/common/lifecycle/ILifecycle.h"
+#include "IController.h"
 #include "IPBaseApp.h"
 #include "SignalGenerator.h"
 
@@ -35,14 +36,8 @@ public:
     virtual ~Controller();
 
     static simsignal_t referenceChangeSignal;
-    static simsignal_t continuousControllerOutputSignal;
     static simsignal_t mappedControllerOutputSignal;
     static simsignal_t numProbablyActuatedSignal;
-
-    static simsignal_t controllerErrorSignal;
-    static simsignal_t continuousControllerPSignal;
-    static simsignal_t continuousControllerISignal;
-    static simsignal_t continuousControllerDSignal;
 
     static void print_states(std::vector<PrimitiveLRUActuatorState *> destStates);
 
@@ -65,23 +60,13 @@ protected:
 
     // Control Variables
     double referenceValue = 0;
-    double currentFlux = 0;
-    double lastFlux = 0;
-    double lastFluxDelta = 0;
 
-    double Kp;
-    double Ki;
-    double Kd;
-    double integrator = 0;
 
-    enum {
-        PID = 0,
-        OPEN_LOOP = 1
-    } controllerType;
 
     std::vector<inet::L3Address> vSensorAddresses;
 
     SignalGenerator signalGenerator;
+    IController *controller = nullptr;
 
 protected:
 
@@ -93,8 +78,8 @@ protected:
     virtual void processStop() override;
 
 
-    void processSample(double sample);
-    void changeState(int targetValue);
+    int mapControlValue(double ctrlOut);
+    void changeState(int changeNum);
 
     void changeReferenceValue(double reference);
     virtual void finish() override;

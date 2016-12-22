@@ -1,5 +1,5 @@
 //
-// Copyright (C) Jonas K., 2016 <i-tek@web.de>
+// Copyright (C) 2016 Jonas K. <i-tek@web.de>
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -25,13 +25,13 @@ import inet_ncs.IPBaseApp;
 simple Actuator extends IPBaseApp
 {
     parameters:
-		bool activeAtStart = default(false);
+        bool activeAtStart = default(false);
 		
-		string controllerAddresses = default("");  // Module paths of ipApp controllers to filter incoming messages.
+        string controllerAddresses = default("");  // Module paths of ipApp controllers to filter incoming messages.
 												   //   If none passed all messages will be accepted.
         int actuatorStatusReplyLength @unit("B");  // Size of IP payload containing status reply and app protocol
 		
-		int actuatorControlProtocol;
+        int actuatorControlProtocol;
         int actuatorStatusProtocol;
         
         volatile double actuationDelay @unit("s") = default(1s); // Time the actuation change takes (turning motor)

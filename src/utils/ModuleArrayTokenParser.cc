@@ -145,9 +145,6 @@ bool ModuleArrayTokenParser::parseModulePathArrayToken(const char* dirtyHostToke
 
     // First check if expansion is necessary at all
     // --- Excerpt from L3AddressResolver.cc
-    int addrType = (L3AddressResolver::ADDR_IPv4 | L3AddressResolver::ADDR_IPv6
-            | L3AddressResolver::ADDR_MAC | L3AddressResolver::ADDR_MODULEPATH
-            | L3AddressResolver::ADDR_MODULEID);
 
     // empty address
     L3Address result = L3Address();
